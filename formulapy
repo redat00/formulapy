@@ -1,0 +1,207 @@
+#!/usr/bin/python3
+# coding: utf8
+
+import requests
+import datetime
+import json
+import sys
+import argparse
+from terminaltables import SingleTable
+
+# Default year
+
+actual_year = datetime.datetime.now()
+str_actual_year=str(actual_year.year)
+
+# Processing argument
+
+parser = argparse.ArgumentParser()
+parser.add_argument('-y', help='[Optionnal] You can specify a year, if not set, current year will be used', required=False, default=str_actual_year, type=int)
+parser.add_argument('-d', help='[Optionnal] Get drivers standings for a specific year', required=False, action='store_true')
+parser.add_argument('-c', help='[Optionnal] Get constructors standings for a specific year', required=False, action='store_true')
+parser.add_argument('-r', help='[Optionnal] Let you get information about a specific round, you can get round number with the default formulapy command', required=False)
+args = parser.parse_args()
+
+# Functions section
+
+# Checking for a valid year
+
+def valid_year(year):
+    try:
+        str_tempo=str(year)
+        datetime.datetime.strptime(str_tempo, '%Y')
+        return 'valid'
+    except ValueError:
+        print('Incorrect year format, should look like this : 1987')
+        exit()
+
+def drivers_standings_print(year):
+    # Creating table to display
+    str_year = str(year)
+    data = []
+    data.append(['Position','Driver','Points','Wins'])
+
+    # Getting standing details
+
+    driver_standings_url = 'https://ergast.com/api/f1/' + str_year + '/driverStandings.json?limit=150'
+
+    driver_standings_request = requests.get(driver_standings_url)
+    driver_standings_json = json.loads(driver_standings_request.content)
+
+    # Getting races results
+
+    driver_number = int(driver_standings_json['MRData']['total'])
+
+    for i in range(0, driver_number):
+        data.append([
+            driver_standings_json['MRData']['StandingsTable']['StandingsLists'][0]['DriverStandings'][i]['position'],
+            driver_standings_json['MRData']['StandingsTable']['StandingsLists'][0]['DriverStandings'][i]['Driver']['givenName'] + ' '
+            + driver_standings_json['MRData']['StandingsTable']['StandingsLists'][0]['DriverStandings'][i]['Driver']['familyName'],
+            driver_standings_json['MRData']['StandingsTable']['StandingsLists'][0]['DriverStandings'][i]['points'],
+            driver_standings_json['MRData']['StandingsTable']['StandingsLists'][0]['DriverStandings'][i]['wins'],
+        ])
+
+    table = SingleTable(data)
+    print(' ')
+    print('\x1b[1;0;45m '+ str_year + ' Formula 1 Championship Standings \x1b[0m')
+    print(table.table)
+    print(' ')
+
+
+def constructors_standings_print(year):
+    # Creating table to display
+    str_year = str(year)
+    data = []
+    data.append(['Position','Constructor','Wins','Points'])
+
+    # Getting standing details
+
+    constructor_standings_url = 'https://ergast.com/api/f1/' + str_year + '/constructorStandings.json?limit=150'
+
+    constructor_standings_request = requests.get(constructor_standings_url)
+    constructor_standings_json = json.loads(constructor_standings_request.content)
+
+    # Getting races results
+
+    constructor_number = int(constructor_standings_json['MRData']['total'])
+
+    for i in range(0, constructor_number):
+        data.append([
+            constructor_standings_json['MRData']['StandingsTable']['StandingsLists'][0]['ConstructorStandings'][i]['position'],
+            constructor_standings_json['MRData']['StandingsTable']['StandingsLists'][0]['ConstructorStandings'][i]['Constructor']['name'],
+            constructor_standings_json['MRData']['StandingsTable']['StandingsLists'][0]['ConstructorStandings'][i]['points'],
+            constructor_standings_json['MRData']['StandingsTable']['StandingsLists'][0]['ConstructorStandings'][i]['wins'],
+        ])
+    
+    table = SingleTable(data)
+    print(' ')
+    print('\x1b[1;0;45m '+ str_year + ' Formula 1 Constructor Standings \x1b[0m')
+    print(table.table)
+    print(' ')
+
+def list_round(year):
+    # Creating table to display
+    str_year = str(args.y)
+    data = []
+
+    # Getting races details
+
+    season_races_url = 'https://ergast.com/api/f1/' + str_year + '.json'
+
+    season_races_request = requests.get(season_races_url)
+    season_races_json = json.loads(season_races_request.content)
+
+    # Getting races results
+
+    season_results_url = 'https://ergast.com/api/f1/' + str_year + '/results.json?limit=420'
+
+    season_results_request = requests.get(season_results_url)
+    season_results_json = json.loads(season_results_request.content)
+
+    race_number = int(season_races_json["MRData"]["total"])
+
+    race_result_number = len(season_results_json['MRData']['RaceTable']['Races'])
+
+    data.append(['Round','Grand Prix','Circuit','Winner'])
+
+    for i in range(0, race_result_number):
+        tempo = i+1
+        istr = str(tempo)
+        data.append([
+            istr,
+            season_races_json["MRData"]["RaceTable"]["Races"][i]["raceName"],
+            season_races_json["MRData"]["RaceTable"]["Races"][i]["Circuit"]["circuitName"],
+            season_results_json["MRData"]["RaceTable"]["Races"][i]["Results"][0]["Driver"]["givenName"] + " "
+            + season_results_json["MRData"]["RaceTable"]["Races"][i]["Results"][0]["Driver"]["familyName"] + " ("
+            + season_results_json["MRData"]["RaceTable"]["Races"][i]["Results"][0]["Constructor"]["name"] + ")",
+        ])
+
+    table = SingleTable(data)
+    print(' ')
+    print('\x1b[1;0;45m Formula 1 ' + str_year + ' Races \x1b[0m')
+    print(table.table)
+    print(' ')
+
+def get_round_info(year,round_num):
+
+    # Creating table to display
+    str_round = str(args.r)
+    str_year = str(args.y)
+    data = []
+
+    # Checking if given round number is good
+
+    check_url = 'http://ergast.com/api/f1/' + str_year + '/races.json'
+    check_request = requests.get(check_url)
+    check_json = json.loads(check_request.content)
+
+    race_number = int(check_json["MRData"]["total"])
+
+    if(int(args.r) > int(race_number)):
+        print('Round number is not good, it should be under ' + str(race_number))
+        exit()
+
+    # Getting races details
+
+    season_races_url = 'http://ergast.com/api/f1/' + str_year + "/" + str_round + '/results.json'
+
+    season_races_request = requests.get(season_races_url)
+    season_races_json = json.loads(season_races_request.content)
+
+    # Getting races results
+
+    race_number = int(season_races_json["MRData"]["total"])
+
+    data.append(['Position','Driver','Grid','Points','Constructor'])
+
+    for i in range(0, race_number):
+        tempo = i+1
+        istr = str(tempo)
+        data.append([
+            season_races_json["MRData"]["RaceTable"]["Races"][0]["Results"][i]["position"],
+            season_races_json["MRData"]["RaceTable"]["Races"][0]["Results"][i]["Driver"]["givenName"] + " "
+            + season_races_json["MRData"]["RaceTable"]["Races"][0]["Results"][i]["Driver"]["familyName"],
+            season_races_json["MRData"]["RaceTable"]["Races"][0]["Results"][i]["grid"],
+            season_races_json["MRData"]["RaceTable"]["Races"][0]["Results"][i]["points"],
+            season_races_json["MRData"]["RaceTable"]["Races"][0]["Results"][i]["Constructor"]["name"],
+        ])
+
+    table = SingleTable(data)
+    print(' ')
+    print('\x1b[1;0;45m '+ str_year  + ' ' + season_races_json["MRData"]["RaceTable"]["Races"][0]["raceName"] + ' \x1b[0m')
+    print(table.table)
+    print(' ')
+
+
+year_validation = valid_year(args.y)
+
+# Getting information and printing them
+
+if(year_validation is "valid" and args.d is True):
+    drivers_standings_print(args.y)
+elif(year_validation is "valid" and args.c is True):
+    constructors_standings_print(args.y)
+elif(year_validation is "valid" and args.r is not None):
+    get_round_info(args.y,args.r)
+elif(year_validation is "valid" and len(sys.argv) < 4):
+    list_round(args.y)
