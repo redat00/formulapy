@@ -1,5 +1,4 @@
 # formulapy
-===
 
 formulapy is a Python application that will let you get results and informations about each years, and each races of the Formula 1 Championship.
 
