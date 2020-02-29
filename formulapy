@@ -110,6 +110,7 @@ def list_round(year):
 
     season_races_request = requests.get(season_races_url)
     season_races_json = json.loads(season_races_request.content)
+    season_races_number = int(season_races_json["MRData"]["total"])
 
     # Getting races results
 
@@ -124,17 +125,25 @@ def list_round(year):
 
     data.append(['Round','Grand Prix','Circuit','Winner'])
 
-    for i in range(0, race_result_number):
+    for i in range(0, season_races_number):
         tempo = i+1
         istr = str(tempo)
-        data.append([
-            istr,
-            season_races_json["MRData"]["RaceTable"]["Races"][i]["raceName"],
-            season_races_json["MRData"]["RaceTable"]["Races"][i]["Circuit"]["circuitName"],
-            season_results_json["MRData"]["RaceTable"]["Races"][i]["Results"][0]["Driver"]["givenName"] + " "
-            + season_results_json["MRData"]["RaceTable"]["Races"][i]["Results"][0]["Driver"]["familyName"] + " ("
-            + season_results_json["MRData"]["RaceTable"]["Races"][i]["Results"][0]["Constructor"]["name"] + ")",
-        ])
+        if i <= race_result_number and race_result_number != 0:
+          data.append([
+              istr,
+              season_races_json["MRData"]["RaceTable"]["Races"][i]["raceName"],
+              season_races_json["MRData"]["RaceTable"]["Races"][i]["Circuit"]["circuitName"],
+              season_results_json["MRData"]["RaceTable"]["Races"][i]["Results"][0]["Driver"]["givenName"] + " "
+              + season_results_json["MRData"]["RaceTable"]["Races"][i]["Results"][0]["Driver"]["familyName"] + " ("
+              + season_results_json["MRData"]["RaceTable"]["Races"][i]["Results"][0]["Constructor"]["name"] + ")",
+          ])
+        else:
+          data.append([
+              istr,
+              season_races_json["MRData"]["RaceTable"]["Races"][i]["raceName"],
+              season_races_json["MRData"]["RaceTable"]["Races"][i]["Circuit"]["circuitName"],
+          ])
+
 
     table = SingleTable(data)
     print(' ')
