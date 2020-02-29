@@ -8,6 +8,11 @@ import sys
 import argparse
 from terminaltables import SingleTable
 
+# This app is using the Ergast API
+# You should use your own API, to not surcharge the Ergast API
+# To do so, you should go to this website, and download an SQL dump of the database :
+# http://ergast.com/mrd/db/
+
 # Default year
 
 actual_year = datetime.datetime.now()
