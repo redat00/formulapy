@@ -131,25 +131,20 @@ def list_round(year):
     data.append(['Round','Grand Prix','Circuit','Winner'])
 
     for i in range(0, season_races_number):
+        try:
+            winner = season_results_json["MRData"]["RaceTable"]["Races"][i]["Results"][0]["Driver"]["givenName"] + " " \
+              + season_results_json["MRData"]["RaceTable"]["Races"][i]["Results"][0]["Driver"]["familyName"] + " (" \
+              + season_results_json["MRData"]["RaceTable"]["Races"][i]["Results"][0]["Constructor"]["name"] + ")"
+        except IndexError: 
+            winner = ' - '
         tempo = i+1
         istr = str(tempo)
-        if i <= race_result_number and race_result_number != 0:
-          data.append([
-              istr,
-              season_races_json["MRData"]["RaceTable"]["Races"][i]["raceName"],
-              season_races_json["MRData"]["RaceTable"]["Races"][i]["Circuit"]["circuitName"],
-              season_results_json["MRData"]["RaceTable"]["Races"][i]["Results"][0]["Driver"]["givenName"] + " "
-              + season_results_json["MRData"]["RaceTable"]["Races"][i]["Results"][0]["Driver"]["familyName"] + " ("
-              + season_results_json["MRData"]["RaceTable"]["Races"][i]["Results"][0]["Constructor"]["name"] + ")",
-          ])
-        else:
-          data.append([
-              istr,
-              season_races_json["MRData"]["RaceTable"]["Races"][i]["raceName"],
-              season_races_json["MRData"]["RaceTable"]["Races"][i]["Circuit"]["circuitName"],
-          ])
-
-
+        data.append([
+            istr,
+            season_races_json["MRData"]["RaceTable"]["Races"][i]["raceName"],
+            season_races_json["MRData"]["RaceTable"]["Races"][i]["Circuit"]["circuitName"],
+            winner,
+        ])
     table = SingleTable(data)
     print(' ')
     print('\x1b[1;0;45m Formula 1 ' + str_year + ' Races \x1b[0m')
