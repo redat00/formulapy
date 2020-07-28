@@ -128,7 +128,7 @@ def list_round(year):
 
     race_result_number = len(season_results_json['MRData']['RaceTable']['Races'])
 
-    data.append(['Round','Grand Prix','Circuit','Winner'])
+    data.append(['Round','Grand Prix','Circuit','Winner','Date'])
 
     for i in range(0, season_races_number):
         try:
@@ -144,6 +144,7 @@ def list_round(year):
             season_races_json["MRData"]["RaceTable"]["Races"][i]["raceName"],
             season_races_json["MRData"]["RaceTable"]["Races"][i]["Circuit"]["circuitName"],
             winner,
+            season_races_json["MRData"]["RaceTable"]["Races"][i]["date"],
         ])
     table = SingleTable(data)
     print(' ')
