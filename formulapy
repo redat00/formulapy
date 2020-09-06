@@ -77,7 +77,7 @@ def constructors_standings_print(year):
     # Creating table to display
     str_year = str(year)
     data = []
-    data.append(['Position','Constructor','Wins','Points'])
+    data.append(['Position','Constructor','Points','Wins'])
 
     # Getting standing details
 
@@ -182,16 +182,27 @@ def get_round_info(year,round_num):
 
     race_number = int(season_races_json["MRData"]["total"])
 
-    data.append(['Position','Driver','Grid','Points','Constructor'])
+    if(race_number == 0):
+        print('Round number ' + str_round + ' have no results for now.')
+        exit()
+
+    data.append(['Position','Driver','Time','Grid','Status','Points','Constructor'])
+
 
     for i in range(0, race_number):
         tempo = i+1
         istr = str(tempo)
+        if(season_races_json["MRData"]["RaceTable"]["Races"][0]["Results"][i]["status"] != "Finished"):
+            time_driver = " - "
+        else:
+            time_driver = season_races_json["MRData"]["RaceTable"]["Races"][0]["Results"][i]["Time"]["time"]
         data.append([
             season_races_json["MRData"]["RaceTable"]["Races"][0]["Results"][i]["position"],
             season_races_json["MRData"]["RaceTable"]["Races"][0]["Results"][i]["Driver"]["givenName"] + " "
             + season_races_json["MRData"]["RaceTable"]["Races"][0]["Results"][i]["Driver"]["familyName"],
+            time_driver,
             season_races_json["MRData"]["RaceTable"]["Races"][0]["Results"][i]["grid"],
+            season_races_json["MRData"]["RaceTable"]["Races"][0]["Results"][i]["status"],
             season_races_json["MRData"]["RaceTable"]["Races"][0]["Results"][i]["points"],
             season_races_json["MRData"]["RaceTable"]["Races"][0]["Results"][i]["Constructor"]["name"],
         ])
