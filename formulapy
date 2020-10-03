@@ -124,10 +124,6 @@ def list_round(year):
     season_results_request = requests.get(season_results_url)
     season_results_json = json.loads(season_results_request.content)
 
-    race_number = int(season_races_json["MRData"]["total"])
-
-    race_result_number = len(season_results_json['MRData']['RaceTable']['Races'])
-
     data.append(['Round','Grand Prix','Circuit','Winner','Date'])
 
     for i in range(0, season_races_number):
@@ -190,8 +186,6 @@ def get_round_info(year,round_num):
 
 
     for i in range(0, race_number):
-        tempo = i+1
-        istr = str(tempo)
         if(season_races_json["MRData"]["RaceTable"]["Races"][0]["Results"][i]["status"] != "Finished"):
             time_driver = " - "
         else:
